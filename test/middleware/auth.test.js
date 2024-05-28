@@ -20,7 +20,7 @@ describe('JWT Auth middleware', () => {
         expect(response.body.message).toBe('Unauthorized: no token provided')
     });
 
-    it('should return 401 if token is invalid', async () => {
+    it('should return 401 if invalid token', async () => {
         const response = await request(app)
         .get('/test')
         .set('authorization', 'Bearer invalidtoken');

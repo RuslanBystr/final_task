@@ -5,7 +5,7 @@ import adService from '../services/adService.js';
 export const createAd = async (req, res) => {
     try {
         const { title, description, price } = req.body;
-        const ad = adService.createAd(title, description, price);
+        const ad = adService.createAd(user_id, title, description, price);
     
         return res.status(201).json({message: ad});
     } catch (err) {
@@ -25,16 +25,14 @@ export const getAds = async (req, res) => {
 
 export const updateAd = async (req, res) => {
     try {
-        const ad = await Ad.findById(req.param.id);
-        if (!ad) {
-            return res.status(404).json('Ad not found');
-        }
-        if (ad.creator.toString() !== req.user.id && req.user.role !== "admin") { //if client is not creator AND admin
-            return res.status(403).send('Forbidden');
-        }
-        Object.assign(ad, req.body);
-        await ad.save();
+        const adUpdated = await adService.updateAd(req.params.id, req.user);
+        
+        if (!adUpdated) return res.status(404).json('Ad not found');
+
+        if (adUpdated instanceof Error) return res.status(403).send('Forbidden');
+        
         res.json({message: 'Updated ad'});
+
     } catch (err) {
         console.log(err);
         res.status(400).json({message: 'Error update ad'});

@@ -8,8 +8,11 @@ export const createUser = async (req, res) => {
     try {
         const { name, email, phoneNumber, password } = req.body;
 
+        if (!name || !email || !phoneNumber || !password) {
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
         await userService.createUser(name, email, phoneNumber, password);
-        await userService.notifyAdminsInTelegram(name);
 
         return res.status(201).json({message: 'User created'});
 
@@ -26,20 +29,23 @@ export const getUser = async (req, res) => {
         const { email, password } = req.body;
 
         const user = await userService.getUser(email);
-        const isMatch = await bcrypt.compare( password, user.password );
 
         if(!user) {
             return res.status(404).json({message: 'User not found'});
         }
+
+        const isMatch = await bcrypt.compare( password, user.password );
+
         if (!isMatch) {
             return res.status(400).json({message: 'Invalid login or password'});
         }
+
         const token = jwt.sign({
             id: user._id,
             role: user.role
         }, process.env.JWT_SECRET, {expiresIn: '1h'});
 
-        res.json( token );
+        res.json({ token });
 
     } catch (err) {
         console.log(err);
